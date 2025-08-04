@@ -32,7 +32,7 @@ const limiter = rateLimit({
 app.use(limiter) // Rate limiting қосу
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173", // CORS конфигурациясы
+    origin: process.env.CLIENT_URL || "https://graceful-sunburst-9f9617.netlify.app", // CORS конфигурациясы
     credentials: true, // Кукилерді қолдануға рұқсат беру
   }),
 )
