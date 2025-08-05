@@ -1,103 +1,140 @@
-const express = require("express") // Express кітапханасын қосу
-const cors = require("cors") // CORS қолдауы үшін кітапхана
-const path = require("path") // Путьтермен жұмыс істеу үшін кітапхана
-const rateLimit = require("express-rate-limit") // Қызметті шектеу үшін кітапхана
-require("dotenv").config() // .env файлынан орта айнымалыларын жүктеу
+import { useState } from "react"
+import { Link, useNavigate } from "react-router-dom"
+import { useAuth } from "../context/AuthContext"
+import { Leaf, Eye, EyeOff, Mail, Lock, ArrowLeft } from "lucide-react"
+import axios from "axios"  // Axios импортын қосыңыз
 
-const { createTables } = require("./config/database") // Дерекқорға арналған функция
-const authRoutes = require("./routes/auth") // Авторизация маршруты
-const plantsRoutes = require("./routes/plants") // Өсімдіктер маршруты
+const LoginPage = () => {
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  })
+  const [showPassword, setShowPassword] = useState(false)
+  const [error, setError] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
 
-const app = express() // Express қосымшасын инициализациялау
-const PORT = process.env.PORT || 5002 // Порт нөмірі, .env файлына сәйкес немесе 5002
+  const { login } = useAuth()
+  const navigate = useNavigate()
 
-// Дерекқор кестелерін жасау
-createTables()
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
+    if (error) setError("")
+  }
 
-// Uploads папкасын жасау (егер жоқ болса)
-const fs = require("fs")
-const uploadsDir = "uploads"
-if (!fs.existsSync(uploadsDir)) { // Егер "uploads" папкасы жоқ болса
-  fs.mkdirSync(uploadsDir) // Папканы жасау
-  console.log("📁 Uploads папкасы жасалды")
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setIsLoading(true)
+    setError("")
+
+    try {
+      const result = await axios.post('https://qaragul-back.onrender.com/api/auth/login', formData)
+      if (result.data.success) {
+        navigate("/dashboard")
+      } else {
+        setError(result.data.error)
+      }
+    } catch (error) {
+      setError(`Кіру кезінде қате орын алды ${error.message}`)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <Link to="/" className="inline-flex items-center gap-2 text-green-600 hover:text-green-700 mb-4">
+            <ArrowLeft className="w-4 h-4" />
+            Артқа қайту
+          </Link>
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <Leaf className="w-8 h-8 text-green-600" />
+            <span className="text-2xl font-bold text-gray-800">PlantID</span>
+          </div>
+          <h1 className="text-3xl font-bold text-gray-800">Кіру</h1>
+          <p className="text-gray-600 mt-2">Аккаунтыңызға кіріңіз</p>
+        </div>
+
+        <div className="card shadow-xl border-0">
+          <div className="p-6">
+            <div className="space-y-1 mb-6">
+              <h2 className="text-2xl font-semibold text-center">Қош келдіңіз!</h2>
+              <p className="text-center text-gray-600">Өз аккаунтыңызға кіріңіз</p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                  <p className="text-red-600 text-sm">{error}</p>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                  Email
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    required
+                    placeholder="example@email.com"
+                    value={formData.email}
+                    onChange={handleChange}
+                    className="input pl-10"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                  Құпия сөз
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    required
+                    placeholder="Құпия сөзіңіз"
+                    value={formData.password}
+                    onChange={handleChange}
+                    className="input pl-10 pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <button type="submit" disabled={isLoading} className="btn btn-primary w-full">
+                {isLoading ? "Кіруде..." : "Кіру"}
+              </button>
+            </form>
+
+            <div className="mt-6 text-center">
+              <p className="text-sm text-gray-600">
+                Аккаунтыңыз жоқ па?{" "}
+                <Link to="/register" className="text-green-600 hover:text-green-700 font-medium">
+                  Тіркелу
+                </Link>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 }
 
-// Сұраныстарды шектеу үшін rate-limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 минут
-  max: 100, // Максимум 100 сұраныс
-})
-
-// Middleware - қолданысқа енгізу
-app.use(limiter) // Rate limiting қосу
-app.use(
-  cors({
-    origin: "https://qaragull.netlify.app", // CORS конфигурациясы
-    credentials: true, // Кукилерді қолдануға рұқсат беру
-  }),
-)
-app.use(express.json({ limit: "10mb" })) // JSON форматындағы денелерді өңдеу
-app.use(express.urlencoded({ extended: true, limit: "10mb" })) // URL-кодталған деректерді өңдеу
-
-// Статикалық файлдарды беру
-app.use("/uploads", express.static("uploads")) // "uploads" папкасынан статикалық файлдар ұсыну
-
-// Маршруттар
-app.use("/api/auth", authRoutes) // Авторизацияға арналған маршрут
-app.use("/api/plants", plantsRoutes) // Өсімдіктерге арналған маршрут
-
-// Денсаулықты тексеру (health check) маршруты
-app.get("/api/health", (req, res) => {
-  res.json({
-    status: "OK", // Сервердің жай-күйі
-    timestamp: new Date().toISOString(), // Қазіргі уақыт
-    uptime: process.uptime(), // Сервердің жұмыс уақыты
-    environment: process.env.NODE_ENV || "development", // Ортаның күйі
-  })
-})
-
-// Қате өңдеу middleware
-app.use((error, req, res, next) => {
-  console.error("🚨 Сервер қатесі:", error) // Қате туралы хабар
-
-  // Файл өлшемі тым үлкен болса
-  if (error.code === "LIMIT_FILE_SIZE") {
-    return res.status(400).json({ error: "Файл өлшемі тым үлкен (максимум 5MB)" })
-  }
-
-  // Сурет файлдары ғана қабылданады
-  if (error.message === "Тек сурет файлдары ғана қабылданады") {
-    return res.status(400).json({ error: error.message })
-  }
-
-  // Жалпы сервер қатесі
-  res.status(500).json({
-    error: "Сервер қатесі",
-    details: process.env.NODE_ENV === "development" ? error.message : undefined, // Даму ортасында қосымша ақпарат
-  })
-})
-
-// 404 қатесі: жол табылмаса
-app.use("*", (req, res) => {
-  console.log(`❌ 404: ${req.method} ${req.originalUrl}`) // Қате туралы хабар
-  res.status(404).json({ error: "API endpoint табылмады" }) // 404 қатесі
-})
-
-// Сервер іске қосу
-app.listen(PORT, () => {
-  console.log(`🚀 Сервер ${PORT} портында іске қосылды`) // Сервер туралы хабар
-  console.log(`📁 API мекенжайы: http://localhost:${PORT}`) // API мекенжайы
-  console.log(`🌐 CORS: ${process.env.CLIENT_URL || "https://qaragull.netlify.app/"}`) // CORS мекенжайы
-  console.log(`🤖 Gemini API: ${process.env.GOOGLE_GEMINI_API_KEY ? "ҚОСЫЛҒАН ✅" : "ҚОСЫЛМАҒАН ❌"}`) // Gemini API күйі
-  console.log(`💾 JWT Secret: ${process.env.JWT_SECRET ? "ҚОСЫЛҒАН ✅" : "ҚОСЫЛМАҒАН ❌"}`) // JWT Secret күйі
-
-  // Қолжетімді API эндпоинттері
-  console.log("\n📋 Қолжетімді API endpoints:")
-  console.log("  POST /api/auth/register")
-  console.log("  POST /api/auth/login")
-  console.log("  GET  /api/auth/profile")
-  console.log("  POST /api/plants/identify")
-  console.log("  GET  /api/plants/scans")
-  console.log("  GET  /api/plants/stats")
-  console.log("  GET  /api/health")
-})
+export default LoginPage
