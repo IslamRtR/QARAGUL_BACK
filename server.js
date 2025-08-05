@@ -32,7 +32,7 @@ const limiter = rateLimit({
 app.use(limiter) // Rate limiting қосу
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "https://qaragull.netlify.app/", // CORS конфигурациясы
+    origin: "https://qaragull.netlify.app", // CORS конфигурациясы
     credentials: true, // Кукилерді қолдануға рұқсат беру
   }),
 )
