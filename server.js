@@ -32,7 +32,7 @@ const limiter = rateLimit({
 app.use(limiter) // Rate limiting қосу
 app.use(
   cors({
-    origin: "https://qaragull.netlify.app", // CORS конфигурациясы
+    origin: "http://localhost:5173", // CORS конфигурациясы
     credentials: true, // Кукилерді қолдануға рұқсат беру
   }),
 )
@@ -87,7 +87,7 @@ app.use("*", (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Сервер ${PORT} портында іске қосылды`) // Сервер туралы хабар
   console.log(`📁 API мекенжайы: http://localhost:${PORT}`) // API мекенжайы
-  console.log(`🌐 CORS: ${process.env.CLIENT_URL || "https://qaragull.netlify.app/"}`) // CORS мекенжайы
+  console.log(`🌐 CORS: ${process.env.CLIENT_URL || "http://localhost:5173"}`) // CORS мекенжайы
   console.log(`🤖 Gemini API: ${process.env.GOOGLE_GEMINI_API_KEY ? "ҚОСЫЛҒАН ✅" : "ҚОСЫЛМАҒАН ❌"}`) // Gemini API күйі
   console.log(`💾 JWT Secret: ${process.env.JWT_SECRET ? "ҚОСЫЛҒАН ✅" : "ҚОСЫЛМАҒАН ❌"}`) // JWT Secret күйі
 
